@@ -23,14 +23,23 @@
 }
 
 - (void)launch:(CDVInvokedUrlCommand*)command {
-	NSDictionary* options = [command.arguments objectAtIndex:0];
+(* 	NSDictionary* options = [command.arguments objectAtIndex:0]; *)
+ 	NSDictionary *options = @{UIApplicationOpenURLOptionUniversalLinksOnly : @NO};
 	CDVPluginResult * pluginResult = nil;
 
 	if ([options objectForKey:@"uri"]) {
 		NSString *uri = [options objectForKey:@"uri"];
 		if ([[UIApplication sharedApplication] canOpenURL: [NSURL URLWithString:uri]]) {
 			NSURL *launchURL = [NSURL URLWithString:uri];
-			[[UIApplication sharedApplication] openURL: launchURL];
+			[[UIApplication sharedApplication] openURL: launchURL
+							   options:options
+							  completionHandler:^(BOOL success) {
+			    if (success) {
+				NSLog(@"Opened successfully");
+			    } else {
+				NSLog(@"Failed to open");
+			    }
+			}];
 			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
 			[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 		} else {
