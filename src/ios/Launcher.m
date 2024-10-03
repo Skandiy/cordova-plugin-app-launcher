@@ -23,25 +23,31 @@
 }
 
 - (void)launch:(CDVInvokedUrlCommand*)command {
- 	NSDictionary* options = [command.arguments objectAtIndex:0];
-//	NSDictionary *options = @{UIApplicationOpenURLOptionUniversalLinksOnly : @NO};
+	NSDictionary* options = [command.arguments objectAtIndex:0];
 	CDVPluginResult * pluginResult = nil;
 
 	if ([options objectForKey:@"uri"]) {
 		NSString *uri = [options objectForKey:@"uri"];
 		if ([[UIApplication sharedApplication] canOpenURL: [NSURL URLWithString:uri]]) {
 			NSURL *launchURL = [NSURL URLWithString:uri];
-			[[UIApplication sharedApplication] openURL: launchURL
-							   options:options
-							  completionHandler:^(BOOL success) {
-			    if (success) {
-				NSLog(@"Opened successfully");
-			    } else {
-				NSLog(@"Failed to open");
-			    }
-			}];
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_10_0
+            [[UIApplication sharedApplication]  openURL:launchURL options:@{} completionHandler:^(BOOL success) {
+                CDVPluginResult * pluginResult = nil;
+                if (success) {
+                    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+                    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+                }
+                else
+                {
+                    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"No app installed that can handle that uri."];
+                    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+                }
+            }];
+#else
+			[[UIApplication sharedApplication] openURL: launchURL];
 			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
 			[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+#endif
 		} else {
 			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"No app installed that can handle that uri."];
 			[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
@@ -51,5 +57,4 @@
 		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 	}
 }
-
 @end
