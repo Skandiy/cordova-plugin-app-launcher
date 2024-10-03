@@ -23,8 +23,8 @@
 }
 
 - (void)launch:(CDVInvokedUrlCommand*)command {
-// 	NSDictionary* options = [command.arguments objectAtIndex:0];
- 	NSDictionary *options = @{UIApplicationOpenURLOptionUniversalLinksOnly : @NO};
+ 	NSDictionary* options = [command.arguments objectAtIndex:0];
+//	NSDictionary *options = @{UIApplicationOpenURLOptionUniversalLinksOnly : @NO};
 	CDVPluginResult * pluginResult = nil;
 
 	if ([options objectForKey:@"uri"]) {
