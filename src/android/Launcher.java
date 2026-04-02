@@ -171,14 +171,30 @@ public class Launcher extends CordovaPlugin {
 	}
 
 	private ActivityInfo getAppInfo(final Intent intent, final String appPackageName) {
-		final PackageManager pm = webView.getContext().getPackageManager();
-		try {
-			Log.d(TAG, pm.getApplicationInfo(appPackageName, 0) + "");
-		}catch (NameNotFoundException e) {
-			Log.i(TAG, "No info found for package: " + appPackageName);
-		}
-		return null;
-	}
+  		final PackageManager pm = webView.getContext().getPackageManager();
+  		try {
+  			ApplicationInfo applicationInfo = pm.getApplicationInfo(appPackageName, 0);
+  			Log.d(TAG, applicationInfo + "");
+
+  			Intent launchIntent = pm.getLaunchIntentForPackage(appPackageName);
+  			if (launchIntent != null && launchIntent.getComponent() != null) {
+  				try {
+  					return pm.getActivityInfo(launchIntent.getComponent(), 0);
+  				} catch (NameNotFoundException e) {
+  					Log.i(TAG, "No launch activity found for package: " + appPackageName);
+  				}
+  			}
+
+  			ActivityInfo activityInfo = new ActivityInfo();
+  			activityInfo.packageName = applicationInfo.packageName;
+  			activityInfo.applicationInfo = applicationInfo;
+  			activityInfo.name = applicationInfo.className;
+  			return activityInfo;
+  		}catch (NameNotFoundException e) {
+  			Log.i(TAG, "No info found for package: " + appPackageName);
+  		}
+  		return null;
+  	}
 
 	private boolean launch(JSONArray args) throws JSONException {
 		final JSONObject options = args.getJSONObject(0);
